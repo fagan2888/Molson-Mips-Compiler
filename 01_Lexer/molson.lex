@@ -23,6 +23,8 @@ fun eof() = (if !inComment=true then (inComment:=false; Error.msg 0 ("eof inside
 <INITIAL>else      => (Tokens.ELSE (yypos, yypos));
 <INITIAL>if        => (Tokens.IF (yypos, yypos));
 <INITIAL>return    => (Tokens.RETURN (yypos, yypos));
+<INITIAL>true      => (Tokens.BOOL (true, yypos, yypos));
+<INITIAL>false     => (Tokens.BOOL (false, yypos, yypos));
 <INITIAL>"="       => (Tokens.ASSIGN (yypos, yypos));
 <INITIAL>"|"       => (Tokens.OR (yypos, yypos));
 <INITIAL>"&"       => (Tokens.AND (yypos, yypos));
