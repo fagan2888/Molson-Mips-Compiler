@@ -2,10 +2,9 @@ structure A = Absyn
 
 signature SEMANT =
 sig
-  val transProg : A.dec list -> unit (* TODO: for translate do types and vars, then j main, then functions *)
+  val transProg : A.dec list -> unit
 end
 
-(* TODO: figure out level, connect method formals and the inputs, skip canon *)
 structure Semant : SEMANT =
 struct
   structure S = Env.Symbol
