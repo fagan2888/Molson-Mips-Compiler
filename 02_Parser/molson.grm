@@ -4,9 +4,9 @@ structure A = Absyn
 %term
     EOF
   | ID of string | INT of int | STRING of string  | BOOL of bool | NIL
-  | COMMA | COLON | LPAREN | RPAREN | LBRACE | RBRACE | DOT
+  | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACE | RBRACE | DOT
   | PLUS | MINUS | UMINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE | AND | OR | ASSIGN
-  | IF | ELSE | WHILE | OF | BREAK | RETURN | FUNCTION | VAR | TYPE
+  | IF | ELSE | WHILE | BREAK | FUNCTION | VAR | TYPE
 
 %nonterm
   program of A.dec list
@@ -17,15 +17,15 @@ structure A = Absyn
   | tyfields of A.ty list
   | funformals of A.field list
   | vardec of {name: A.symbol, init: A.exp, pos: A.pos}
-  | returnval of A.exp
   | funcall of A.exp
   | inputs of A.exp list
   | operation of A.exp
   | lvalue of A.var
   | tupleexp of {fields: A.exp list, typ: A.symbol, pos: A.pos}
   | fundec of {name: A.symbol, params: A.field list, result: A.symbol, body: A.exp, pos: A.pos}
-  | expseq of (A.exp * A.pos) list
   | exp of A.exp
+  | expseq of A.exp
+  | expseq2 of A.exp list
 
 %pos int
 %verbose
@@ -35,16 +35,14 @@ structure A = Absyn
 
 %name Molson
 
-%keyword WHILE BREAK FUNCTION VAR TYPE IF ELSE OF
+%keyword WHILE BREAK FUNCTION VAR TYPE IF ELSE
 
 %value ID ("bogus")
 %value INT (1)
 %value STRING ("")
 
-%nonassoc ID
-%nonassoc LBRACE OF
-%left OR
-%left AND
+%nonassoc ID LBRACE ASSIGN
+%left OR AND
 %nonassoc EQ NEQ LT LE GT GE
 %left PLUS MINUS
 %left TIMES DIVIDE
@@ -72,37 +70,27 @@ tyfields : ty COMMA tyfields (ty::tyfields)
 funformals : ID COLON ID ([(ID1,ID2,ID1left)])
            | ID COLON ID COMMA funformals ((ID1,ID2,ID1left)::funformals)
 
-vardec : VAR ID ASSIGN returnval ({name=ID,init=returnval,pos=VARleft})
-
-returnval : NIL (A.NilExp)
-          | INT (A.IntExp(INT))
-          | STRING (A.StringExp(STRING))
-          | BOOL (A.BoolExp(BOOL))
-          | funcall (funcall)
-          | operation (operation)
-          | lvalue (A.VarExp(lvalue))
-          | tupleexp (A.TupleExp(tupleexp))
-          | LPAREN returnval RPAREN (returnval)
+vardec : VAR ID ASSIGN exp ({name=ID,init=exp,pos=VARleft})
 
 funcall : ID LPAREN inputs RPAREN (A.CallExp({func=ID,args=inputs,pos=IDleft}))
         | ID LPAREN RPAREN (A.CallExp({func=ID,args=[],pos=IDleft}))
 
-inputs : returnval COMMA inputs (returnval::inputs)
-       | returnval ([returnval])
+inputs : exp COMMA inputs (exp::inputs)
+       | exp ([exp])
 
-operation : returnval PLUS returnval (A.OpExp({left=returnval1,oper=A.PlusOp,right=returnval2,pos=returnval1left}))
-          | returnval MINUS returnval (A.OpExp({left=returnval1,oper=A.MinusOp,right=returnval2,pos=returnval1left}))
-          | returnval TIMES returnval (A.OpExp({left=returnval1,oper=A.TimesOp,right=returnval2,pos=returnval1left}))
-          | returnval DIVIDE returnval (A.OpExp({left=returnval1,oper=A.DivideOp,right=returnval2,pos=returnval1left}))
-          | MINUS returnval %prec UMINUS (A.OpExp({left=A.IntExp(0),oper=A.MinusOp,right=returnval,pos=returnvalleft}))
-          | returnval GE returnval (A.OpExp({left=returnval1,oper=A.GeOp,right=returnval2,pos=returnval1left}))
-          | returnval GT returnval (A.OpExp({left=returnval1,oper=A.GtOp,right=returnval2,pos=returnval1left}))
-          | returnval LE returnval (A.OpExp({left=returnval1,oper=A.LeOp,right=returnval2,pos=returnval1left}))
-          | returnval LT returnval (A.OpExp({left=returnval1,oper=A.LtOp,right=returnval2,pos=returnval1left}))
-          | returnval NEQ returnval (A.OpExp({left=returnval1,oper=A.NeqOp,right=returnval2,pos=returnval1left}))
-          | returnval EQ returnval (A.OpExp({left=returnval1,oper=A.EqOp,right=returnval2,pos=returnval1left}))
-          | returnval OR returnval (A.OpExp({left=returnval1,oper=A.OrOp,right=returnval2,pos=returnval1left}))
-          | returnval AND returnval (A.OpExp({left=returnval1,oper=A.AndOp,right=returnval2,pos=returnval1left}))
+operation : exp PLUS exp (A.OpExp({left=exp1,oper=A.PlusOp,right=exp2,pos=exp1left}))
+          | exp MINUS exp (A.OpExp({left=exp1,oper=A.MinusOp,right=exp2,pos=exp1left}))
+          | exp TIMES exp (A.OpExp({left=exp1,oper=A.TimesOp,right=exp2,pos=exp1left}))
+          | exp DIVIDE exp (A.OpExp({left=exp1,oper=A.DivideOp,right=exp2,pos=exp1left}))
+          | MINUS exp %prec UMINUS (A.OpExp({left=A.IntExp(0),oper=A.MinusOp,right=exp,pos=expleft}))
+          | exp GE exp (A.OpExp({left=exp1,oper=A.GeOp,right=exp2,pos=exp1left}))
+          | exp GT exp (A.OpExp({left=exp1,oper=A.GtOp,right=exp2,pos=exp1left}))
+          | exp LE exp (A.OpExp({left=exp1,oper=A.LeOp,right=exp2,pos=exp1left}))
+          | exp LT exp (A.OpExp({left=exp1,oper=A.LtOp,right=exp2,pos=exp1left}))
+          | exp NEQ exp (A.OpExp({left=exp1,oper=A.NeqOp,right=exp2,pos=exp1left}))
+          | exp EQ exp (A.OpExp({left=exp1,oper=A.EqOp,right=exp2,pos=exp1left}))
+          | exp OR exp (A.OpExp({left=exp1,oper=A.OrOp,right=exp2,pos=exp1left}))
+          | exp AND exp (A.OpExp({left=exp1,oper=A.AndOp,right=exp2,pos=exp1left}))
 
 lvalue : ID (A.SimpleVar(ID,IDleft))
        | lvalue DOT INT (A.FieldVar(lvalue,INT,lvalueleft))
@@ -110,16 +98,26 @@ lvalue : ID (A.SimpleVar(ID,IDleft))
 tupleexp : ID LBRACE RBRACE ({fields=[],typ=ID,pos=IDleft})
          | ID LBRACE inputs RBRACE ({fields=inputs,typ=ID,pos=IDleft})
 
-fundec : FUNCTION ID LPAREN RPAREN COLON ID LBRACE expseq RBRACE ({name=ID1,params=[],result=ID2,body=A.SeqExp(expseq),pos=FUNCTIONleft})
-       | FUNCTION ID LPAREN funformals RPAREN COLON ID LBRACE expseq RBRACE ({name=ID1,params=funformals,result=ID2,body=A.SeqExp(expseq),pos=FUNCTIONleft})
+fundec : FUNCTION ID LPAREN RPAREN COLON ID LBRACE exp RBRACE ({name=ID1,params=[],result=ID2,body=exp,pos=FUNCTIONleft})
+       | FUNCTION ID LPAREN funformals RPAREN COLON ID LBRACE exp RBRACE ({name=ID1,params=funformals,result=ID2,body=exp,pos=FUNCTIONleft})
 
-expseq : exp expseq ((exp,expleft)::expseq)
-       | ([])
-
-exp : vardec (A.DecExp(vardec))
-    | IF returnval LBRACE expseq RBRACE (A.IfExp({cond=returnval, exp=A.SeqExp(expseq), pos=IFleft}))
-    | IF returnval LBRACE expseq RBRACE ELSE LBRACE expseq RBRACE (A.IfElseExp({cond=returnval, exp1=A.SeqExp(expseq1), exp2=A.SeqExp(expseq2), pos=IFleft}))
-    | WHILE LPAREN returnval RPAREN LBRACE expseq RBRACE (A.WhileExp({cond=returnval, body=A.SeqExp(expseq), pos=WHILEleft}))
-    | lvalue ASSIGN returnval (A.AssignExp({var=lvalue,exp=returnval,pos=lvalueleft}))
+exp : IF LPAREN exp RPAREN LBRACE exp RBRACE ELSE LBRACE exp RBRACE (A.IfElseExp({cond=exp, exp1=exp1, exp2=exp2, pos=IFleft}))
+    | WHILE LPAREN exp RPAREN LBRACE exp RBRACE (A.WhileExp({cond=exp, body=exp, pos=WHILEleft}))
+    | lvalue ASSIGN exp (A.AssignExp({var=lvalue,exp=exp,pos=lvalueleft}))
     | BREAK (A.BreakExp(BREAKleft))
-    | RETURN returnval (A.ReturnExp({exp=returnval, pos=returnvalleft}))
+    | LPAREN expseq RPAREN (expseq)
+    | NIL (A.NilExp)
+    | INT (A.IntExp(INT))
+    | STRING (A.StringExp(STRING))
+    | BOOL (A.BoolExp(BOOL))
+    | funcall (funcall)
+    | operation (operation)
+    | lvalue (A.VarExp(lvalue))
+    | tupleexp (A.TupleExp(tupleexp))
+
+expseq : exp expseq2 (A.SeqExp(exp::expseq2))
+       | exp (exp)
+       | (A.NilExp)
+
+expseq2 : SEMICOLON exp (exp::[])
+        | SEMICOLON exp expseq2 (exp::expseq2)

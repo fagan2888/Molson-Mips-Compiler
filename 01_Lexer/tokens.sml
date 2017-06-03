@@ -5,7 +5,6 @@ struct
   type token = string
   fun TYPE(i,j) = "TYPE   " ^ Int.toString(i)
   fun VAR(i,j) = "VAR   " ^ Int.toString(i)
-  fun OF(i,j) = "OF   " ^ Int.toString(i)
   fun NIL(i,j) = "NIL   " ^ Int.toString(i)
   fun COMMA(i,j) = "COMMA   " ^ Int.toString(i)
   fun FUNCTION(i,j) = "FUNCTION   " ^ Int.toString(i)

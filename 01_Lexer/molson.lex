@@ -15,14 +15,12 @@ fun eof() = (if !inComment=true then (inComment:=false; Error.msg 0 ("eof inside
 <INITIAL>[ \t\n\b] => (continue());
 <INITIAL>type      => (Tokens.TYPE (yypos, yypos));
 <INITIAL>nil       => (Tokens.NIL (yypos, yypos));
-<INITIAL>of        => (Tokens.OF (yypos, yypos));
 <INITIAL>var       => (Tokens.VAR (yypos, yypos));
 <INITIAL>function  => (Tokens.FUNCTION (yypos, yypos));
 <INITIAL>break     => (Tokens.BREAK (yypos, yypos));
 <INITIAL>while     => (Tokens.WHILE (yypos, yypos));
 <INITIAL>else      => (Tokens.ELSE (yypos, yypos));
 <INITIAL>if        => (Tokens.IF (yypos, yypos));
-<INITIAL>return    => (Tokens.RETURN (yypos, yypos));
 <INITIAL>true      => (Tokens.BOOL (true, yypos, yypos));
 <INITIAL>false     => (Tokens.BOOL (false, yypos, yypos));
 <INITIAL>"="       => (Tokens.ASSIGN (yypos, yypos));
@@ -45,6 +43,7 @@ fun eof() = (if !inComment=true then (inComment:=false; Error.msg 0 ("eof inside
 <INITIAL>"("       => (Tokens.LPAREN (yypos, yypos));
 <INITIAL>":"       => (Tokens.COLON (yypos, yypos));
 <INITIAL>","       => (Tokens.COMMA (yypos, yypos));
+<INITIAL>";"       => (Tokens.SEMICOLON (yypos, yypos));
 
 <INITIAL>[0-9]+                => (Tokens.INT ((Option.valOf (Int.fromString yytext)), yypos, yypos));
 <INITIAL>[a-zA-Z][a-zA-Z0-9_]* => (Tokens.ID (yytext, yypos, yypos));

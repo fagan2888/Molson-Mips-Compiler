@@ -51,14 +51,11 @@ struct
         | exp (A.OpExp{left=left,oper=opr,right=right,pos=pos}) = exp left ^ oper opr ^ exp right
         | exp (A.SeqExp([])) = ""
         | exp (A.TupleExp{fields, typ, pos}) = typ ^ "{" ^ arglist (fields,"") ^ "}"
-        | exp (A.SeqExp((e,p)::seq)) = exp e ^ "\n" ^ exp (A.SeqExp(seq))
+        | exp (A.SeqExp(e::seq)) = exp e ^ "\n" ^ exp (A.SeqExp(seq))
         | exp (A.AssignExp{var=v,exp=e,pos=p}) = var v ^ "=" ^ exp e
-        | exp (A.IfExp{cond=c,exp=e,pos=p}) = "if (" ^ exp c ^ ") {\n" ^ exp e ^ "\n}"
         | exp (A.IfElseExp{cond,exp1,exp2,pos}) = "if (" ^ exp cond ^ ") {\n" ^ exp exp1 ^ "} else {\n" ^ exp exp2 ^ "}"
         | exp (A.WhileExp{cond,body,pos}) = "while (" ^ exp cond ^ ") {\n" ^ exp body ^ "}"
         | exp (A.BreakExp(pos)) = "break"
-        | exp (A.ReturnExp{exp=e,pos=p}) = "return " ^ exp e
-        | exp (A.DecExp{name,init,pos}) = "VarDec(" ^ name ^ " = " ^ exp init ^ ")"
 
       and arglist ([],str) = str
         | arglist ([e],str) = str ^ exp e
