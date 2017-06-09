@@ -128,8 +128,9 @@ struct
           val spup = [C.OPER{assem="addi `d0, `s0, " ^ (Int.toString 8) ^ "\n", src=[R.SP], dst=[R.SP], jump=NONE}] (* move sp by 2 words (sp,fp) *)
           val lwfp = [C.OPER{assem="lw `d0, -4(`s0)\n", src=[R.SP], dst=[R.FP], jump=NONE}] (* lw $ra, -4($sp) *)
           val lwra = [C.OPER{assem="lw `d0, -8(`s0)\n", src=[R.SP], dst=[R.RA], jump=NONE}] (* lw $ra, -8($sp) *)
+          val jrra = [C.OPER{assem="jr `d0\n", src=[],dst=[R.RA],jump=NONE}] (* jr $ra *)
         in
-          lab @ swfp @ swra @ fpsp @ spdown @ (C.codegen venv body) @ spup @ lwfp @ lwra
+          lab @ swfp @ swra @ fpsp @ spdown @ (C.codegen venv body) @ spup @ lwfp @ lwra @ jrra
         end
 
       fun genproc (T.PROC{body, name, formals}::list) = (procEntryExit (body, name, formals)) @ (genproc list)
