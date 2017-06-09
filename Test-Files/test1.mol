@@ -1,0 +1,21 @@
+var x1 = 10
+var y = "hello"
+type x = int
+type z1 = {}
+type z2 = {x , string, x , bool}
+type z3 = {int , bool}
+
+var z = z2 {1,"test", 2, true}
+var y = test2(x1) + test3(5)
+
+function test (x: bool, t: string) : bool {
+  z.3
+}
+
+function test2 (x5: int) : int {
+  (z2 {1,"test", 2, true};0)
+}
+
+function test3 (x6: int) : int {
+  x6
+}
